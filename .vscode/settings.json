@@ -12,5 +12,9 @@
     "**/Thumbs.db": true,
     "**/.bin": true,
     ".mule": true
+  },
+  "workbench.colorCustomizations": {
+    "statusBar.background": null,
+    "activityBar.background": null
   }
 }

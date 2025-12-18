@@ -1,3 +1,17 @@
 <template>
-    This is record Ids{recordIds}
+    <lightning-card title="Selected Records" class="slds-m-around_medium">
+        <div class="slds-m-around_medium">
+            <template if:true={selectedRecords.length}>
+                <p>Selected Record IDs:</p>
+                <ul>
+                    <template for:each={selectedRecords} for:item="record">
+                        <li key={record.Id}>{record.Id}</li>
+                    </template>
+                </ul>
+            </template>
+            <template if:false={selectedRecords.length}>
+                <p>No records selected.</p>
+            </template>
+        </div>
+    </lightning-card>
 </template>
