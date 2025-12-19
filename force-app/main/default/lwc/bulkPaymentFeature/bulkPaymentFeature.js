@@ -1,6 +1,7 @@
 import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { FlowNavigationNextEvent, FlowNavigationFinishEvent } from 'lightning/flowSupport';
+import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
 
 export default class BulkPaymentFeature extends LightningElement {
@@ -10,6 +11,7 @@ export default class BulkPaymentFeature extends LightningElement {
     @api availableActions = [];
 
     @track invoiceRecords = [];
+    @track filteredInvoices = [];
     @track filterAccount = '';
     @track filterFromDate = '';
     @track filterToDate = '';
@@ -34,6 +36,7 @@ export default class BulkPaymentFeature extends LightningElement {
         try {
             getPurchaseInvoiceDetails({ invoiceIds: recordIdArray }).then(result => {
                 this.invoiceRecords = result;
+                this.filteredInvoices = result;
                 console.log('Loaded Invoices:', this.invoiceRecords);
             }).catch(error => {
                 console.error('Error loading invoices:', error);
@@ -49,6 +52,7 @@ export default class BulkPaymentFeature extends LightningElement {
     handleFilterChange(event) {
         const field = event.target.dataset.field;
         this[field] = event.target.value;
+        console.log(`Filter changed: ${field} = ${this[field]}`);
     }
 
     handleRowSelection(event) {
@@ -66,37 +70,47 @@ export default class BulkPaymentFeature extends LightningElement {
     get totalAmount() {
         return this.invoiceRecords
             .filter(inv => inv.isSelected)
-            .reduce((sum, inv) => sum + (inv.Outstanding_Amount__c || 0), 0)
+            .reduce((sum, inv) => sum + (inv.natdev24__Balance_Outstanding__c || 0), 0)
             .toFixed(2);
     }
 
-    filteredInvoices() {
-        return this.invoiceRecords.filter(invoice => {
+    filterInvoices() {
+        const filteredPI = this.invoiceRecords.filter(invoice => {
             const matchAccount = !this.filterAccount ||
-                invoice.Account__r?.Name.toLowerCase().includes(this.filterAccount.toLowerCase());
+                invoice.natdev24__Account__r?.Name.toLowerCase().includes(this.filterAccount.toLowerCase());
             const matchReference = !this.filterReference ||
                 invoice.Name.toLowerCase().includes(this.filterReference.toLowerCase());
 
             // Date filtering
             let matchFromDate = true;
             let matchToDate = true;
-
-            if (this.filterFromDate && invoice.Invoice_Date__c) {
-                matchFromDate = invoice.Invoice_Date__c >= this.filterFromDate;
+            if (this.filterFromDate && invoice.natdev24__Invoice_Date__c) {
+                matchFromDate = invoice.natdev24__Invoice_Date__c >= this.filterFromDate;
             }
-
-            if (this.filterToDate && invoice.Invoice_Date__c) {
-                matchToDate = invoice.Invoice_Date__c <= this.filterToDate;
+            if (this.filterToDate && invoice.natdev24__Invoice_Date__c) {
+                matchToDate = invoice.natdev24__Invoice_Date__c <= this.filterToDate;
             }
 
             return matchAccount && matchReference && matchFromDate && matchToDate;
-
         });
+
+        console.log('Filtered Invoices:', filteredPI);
+        return filteredPI;
     }
 
     handleApplyFilter() {
-        this.invoiceRecords = [...this.filteredInvoices()];
-        this.showToast('Success', 'Filters applied', 'success');
+        this.filteredInvoices = [...this.filterInvoices()];
+        // this.showToast('Success', 'Filters applied', 'success');
+        this.showAlert('Success', 'Filters applied', 'success');
+    }
+
+    handleApplyClearFilter() {
+        this.filteredInvoices = this.invoiceRecords;
+        this.filterAccount = '';
+        this.filterFromDate = '';
+        this.filterToDate = '';
+        this.filterReference = '';
+        // this.showToast('Success', 'Filters cleared', 'success');
     }
 
     handlePay() {
@@ -129,7 +143,15 @@ export default class BulkPaymentFeature extends LightningElement {
         window.location.replace('/lightning/o/natdev24__Purchase_Invoice_Header__c/list?filterName=Recent');
     }
 
-    showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    // showToast(title, message, variant) {
+    //     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    // }
+
+    async showAlert(title, message, theme = 'success') {
+        await LightningAlert.open({
+            message,
+            theme, // success | error | warning | info
+            label: title
+        });
     }
 }
