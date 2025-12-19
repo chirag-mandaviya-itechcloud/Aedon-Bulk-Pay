@@ -3,10 +3,10 @@
         <div class="slds-text-title_bold" slot="title">
             <h1 style="font-size: larger;">Bulk Pay</h1>
         </div>
-        <div class=" slds-p-around_medium">
+        <div class="slds-p-around_medium">
 
             <!-- Filter Section -->
-            <div class="slds-box slds-m-bottom_medium">
+            <!-- <div class="slds-box slds-m-bottom_medium">
                 <div class="slds-grid slds-gutters slds-wrap">
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
                         <lightning-input label="Account" value={filterAccount} data-field="filterAccount"
@@ -38,93 +38,14 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
-            <!-- Invoice Table -->
-            <div class="slds-box slds-m-bottom_medium" style="max-height: 400px; overflow-y: auto;">
-                <table class="slds-table slds-table_cell-buffer slds-table_bordered">
-                    <thead>
-                        <tr class="slds-line-height_reset">
-                            <th scope="col" style="width: 3rem;">
-                                <div class="slds-th__action slds-th__action_form">
-                                    <span class="slds-checkbox">
-                                        Select
-                                    </span>
-                                </div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Sales Invoice">Sales Invoice</div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Account">Account</div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Invoice date">Invoice date</div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Gross Amount">Gross Amount</div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Outstanding Amount">Outstanding Amount</div>
-                            </th>
-                            <th scope="col">
-                                <div class="slds-truncate" title="Net Amount">Net Amount</div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template if:true={isLoading}>
-                            <tr>
-                                <td colspan="6" class="slds-text-align_center">
-                                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
-                                </td>
-                            </tr>
-                        </template>
-                        <template if:false={isLoading}>
-                            <template for:each={filteredInvoices} for:item="invoice">
-                                <tr key={invoice.Id} class="slds-hint-parent">
-                                    <td>
-                                        <lightning-input type="checkbox" checked={invoice.isSelected}
-                                            data-id={invoice.Id} onchange={handleRowSelection} variant="label-hidden">
-                                        </lightning-input>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate" title={invoice.Name}>{invoice.Name}</div>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate" title={invoice.natdev24__Account__r.Name}>
-                                            {invoice.natdev24__Account__r.Name}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate">{invoice.natdev24__Invoice_Date__c}</div>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate">
-                                            <lightning-formatted-number value={invoice.natdev24__Gross_Amount__c}
-                                                format-style="currency" currency-code="USD">
-                                            </lightning-formatted-number>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate">
-                                            <lightning-formatted-number value={invoice.natdev24__Balance_Outstanding__c}
-                                                format-style="currency" currency-code="USD">
-                                            </lightning-formatted-number>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="slds-truncate">
-                                            <lightning-formatted-number value={invoice.natdev24__Net_Amount__c}
-                                                format-style="currency" currency-code="USD">
-                                            </lightning-formatted-number>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </template>
-                        </template>
-                    </tbody>
-                </table>
+            <!-- Invoice Datatable -->
+            <div class="slds-m-bottom_medium">
+                <lightning-datatable key-field="Id" data={invoiceRecords} columns={columns}
+                    onrowselection={handleRowSelection} selected-rows={selectedRows} max-row-selection="1000"
+                    is-loading={isLoading} style="height: 400px;">
+                </lightning-datatable>
 
                 <!-- Total Amount -->
                 <div class="slds-grid slds-grid_align-end slds-p-around_small">
@@ -137,7 +58,7 @@
             </div>
 
             <!-- Payment Details Section -->
-            <div class=" slds-box">
+            <div class="slds-box">
                 <div class="slds-grid slds-gutters slds-wrap">
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input type="date" label="Date" value={paymentDate} data-field="paymentDate"

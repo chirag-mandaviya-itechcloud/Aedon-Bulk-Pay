@@ -6,12 +6,11 @@ import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureContro
 
 export default class BulkPaymentFeature extends LightningElement {
     @api recordIds;
-
-    // Flow attributes - these allow Flow to detect when to move forward
     @api availableActions = [];
 
     @track invoiceRecords = [];
-    @track filteredInvoices = [];
+    // @track filteredInvoices = [];
+    @track selectedRows = [];
     @track filterAccount = '';
     @track filterFromDate = '';
     @track filterToDate = '';
@@ -23,6 +22,50 @@ export default class BulkPaymentFeature extends LightningElement {
 
     isLoading = false;
 
+    // Define columns for lightning-datatable
+    columns = [
+        {
+            label: 'Invoice',
+            fieldName: 'Name',
+            type: 'text',
+            sortable: true
+        },
+        {
+            label: 'Account',
+            fieldName: 'accountName',
+            type: 'text',
+            sortable: true
+        },
+        {
+            label: 'Invoice Date',
+            fieldName: 'natdev24__Invoice_Date__c',
+            type: 'date',
+            sortable: true,
+            typeAttributes: {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }
+        },
+        {
+            label: 'Customer Reference',
+            fieldName: 'natdev24__Customer_Reference__c',
+            type: 'text',
+            sortable: true
+        },
+        {
+            label: 'Gross Amount',
+            fieldName: 'natdev24__Gross_Amount__c',
+            type: 'number'
+        },
+        {
+            label: 'Outstanding Amount',
+            fieldName: 'natdev24__Balance_Outstanding__c',
+            type: 'number'
+        },
+
+    ];
+
     connectedCallback() {
         console.log('Record Ids :', this.recordIds);
         if (this.recordIds) {
@@ -33,33 +76,34 @@ export default class BulkPaymentFeature extends LightningElement {
 
     loadInvoiceDetails(recordIdArray) {
         this.isLoading = true;
-        try {
-            getPurchaseInvoiceDetails({ invoiceIds: recordIdArray }).then(result => {
-                this.invoiceRecords = result;
-                this.filteredInvoices = result;
+        getPurchaseInvoiceDetails({ invoiceIds: recordIdArray })
+            .then(result => {
+                // Add accountName field for datatable display
+                this.invoiceRecords = result.map(invoice => ({
+                    ...invoice,
+                    accountName: invoice.natdev24__Account__r?.Name || ''
+                }));
+                // this.filteredInvoices = [...this.invoiceRecords];
+                this.selectedRows = this.invoiceRecords.map(inv => inv.Id);
                 console.log('Loaded Invoices:', this.invoiceRecords);
-            }).catch(error => {
+                this.isLoading = false;
+            })
+            .catch(error => {
                 console.error('Error loading invoices:', error);
+                this.showToast('Error', 'Failed to load invoice details', 'error');
+                this.isLoading = false;
             });
-        } catch (error) {
-            console.error('Error loading invoices:', error);
-            this.showToast('Error', 'Failed to load invoice details', 'error');
-        } finally {
-            this.isLoading = false;
-        }
     }
 
-    handleFilterChange(event) {
-        const field = event.target.dataset.field;
-        this[field] = event.target.value;
-        console.log(`Filter changed: ${field} = ${this[field]}`);
-    }
+    // handleFilterChange(event) {
+    //     const field = event.target.dataset.field;
+    //     this[field] = event.target.value;
+    //     console.log(`Filter changed: ${field} = ${this[field]}`);
+    // }
 
     handleRowSelection(event) {
-        const invoiceId = event.target.dataset.id;
-        this.invoiceRecords = this.invoiceRecords.map(inv =>
-            inv.Id === invoiceId ? { ...inv, isSelected: event.target.checked } : inv
-        );
+        this.selectedRows = event.detail.selectedRows.map(row => row.Id);
+        console.log('Selected Rows:', this.selectedRows);
     }
 
     handlePaymentFieldChange(event) {
@@ -69,52 +113,56 @@ export default class BulkPaymentFeature extends LightningElement {
 
     get totalAmount() {
         return this.invoiceRecords
-            .filter(inv => inv.isSelected)
+            .filter(inv => this.selectedRows.includes(inv.Id))
             .reduce((sum, inv) => sum + (inv.natdev24__Balance_Outstanding__c || 0), 0)
             .toFixed(2);
     }
 
-    filterInvoices() {
-        const filteredPI = this.invoiceRecords.filter(invoice => {
-            const matchAccount = !this.filterAccount ||
-                invoice.natdev24__Account__r?.Name.toLowerCase().includes(this.filterAccount.toLowerCase());
-            const matchReference = !this.filterReference ||
-                invoice.Name.toLowerCase().includes(this.filterReference.toLowerCase());
+    // filterInvoices() {
+    //     const filteredPI = this.invoiceRecords.filter(invoice => {
+    //         const matchAccount = !this.filterAccount ||
+    //             invoice.accountName.toLowerCase().includes(this.filterAccount.toLowerCase());
+    //         const matchReference = !this.filterReference ||
+    //             invoice.Name.toLowerCase().includes(this.filterReference.toLowerCase());
 
-            // Date filtering
-            let matchFromDate = true;
-            let matchToDate = true;
-            if (this.filterFromDate && invoice.natdev24__Invoice_Date__c) {
-                matchFromDate = invoice.natdev24__Invoice_Date__c >= this.filterFromDate;
-            }
-            if (this.filterToDate && invoice.natdev24__Invoice_Date__c) {
-                matchToDate = invoice.natdev24__Invoice_Date__c <= this.filterToDate;
-            }
+    //         let matchFromDate = true;
+    //         let matchToDate = true;
+    //         if (this.filterFromDate && invoice.natdev24__Invoice_Date__c) {
+    //             matchFromDate = invoice.natdev24__Invoice_Date__c >= this.filterFromDate;
+    //         }
+    //         if (this.filterToDate && invoice.natdev24__Invoice_Date__c) {
+    //             matchToDate = invoice.natdev24__Invoice_Date__c <= this.filterToDate;
+    //         }
 
-            return matchAccount && matchReference && matchFromDate && matchToDate;
-        });
+    //         return matchAccount && matchReference && matchFromDate && matchToDate;
+    //     });
 
-        console.log('Filtered Invoices:', filteredPI);
-        return filteredPI;
-    }
+    //     console.log('Filtered Invoices:', filteredPI);
+    //     return filteredPI;
+    // }
 
-    handleApplyFilter() {
-        this.filteredInvoices = [...this.filterInvoices()];
-        // this.showToast('Success', 'Filters applied', 'success');
-        this.showAlert('Success', 'Filters applied', 'success');
-    }
+    // handleApplyFilter() {
+    //     // this.filteredInvoices = [...this.filterInvoices()];
+    //     // Clear selection when filters change
+    //     this.selectedRows = [];
+    //     this.showToast('Success', 'Filters applied', 'success');
+    // }
 
-    handleApplyClearFilter() {
-        this.filteredInvoices = this.invoiceRecords;
-        this.filterAccount = '';
-        this.filterFromDate = '';
-        this.filterToDate = '';
-        this.filterReference = '';
-        // this.showToast('Success', 'Filters cleared', 'success');
-    }
+    // handleApplyClearFilter() {
+    //     this.filteredInvoices = [...this.invoiceRecords];
+    //     this.filterAccount = '';
+    //     this.filterFromDate = '';
+    //     this.filterToDate = '';
+    //     this.filterReference = '';
+    //     this.selectedRows = [];
+    //     this.showToast('Success', 'Filters cleared', 'success');
+    // }
 
     handlePay() {
-        const selectedInvoices = this.invoiceRecords.filter(inv => inv.isSelected);
+        const selectedInvoices = this.invoiceRecords.filter(inv =>
+            this.selectedRows.includes(inv.Id)
+        );
+
         if (selectedInvoices.length === 0) {
             this.showToast('Warning', 'Please select at least one invoice', 'warning');
             return;
@@ -125,7 +173,6 @@ export default class BulkPaymentFeature extends LightningElement {
             return;
         }
 
-        // Call Apex to process payments
         console.log('Processing payments:', {
             invoices: selectedInvoices,
             paymentDate: this.paymentDate,
@@ -139,18 +186,17 @@ export default class BulkPaymentFeature extends LightningElement {
 
     handleCancel() {
         console.log('Cancel clicked - forcing navigation');
-        // Nuclear option - always works
         window.location.replace('/lightning/o/natdev24__Purchase_Invoice_Header__c/list?filterName=Recent');
     }
 
-    // showToast(title, message, variant) {
-    //     this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
-    // }
+    showToast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    }
 
     async showAlert(title, message, theme = 'success') {
         await LightningAlert.open({
             message,
-            theme, // success | error | warning | info
+            theme,
             label: title
         });
     }
