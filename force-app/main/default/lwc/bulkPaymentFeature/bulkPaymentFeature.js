@@ -4,6 +4,7 @@ import { FlowNavigationNextEvent, FlowNavigationFinishEvent } from 'lightning/fl
 import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
 import getBankAccounts from '@salesforce/apex/BulkPaymentFeatureController.getBankAccounts';
+import processBulkPayment from '@salesforce/apex/BulkPaymentFeatureController.processBulkPayment';
 
 export default class BulkPaymentFeature extends LightningElement {
     @api recordIds;
@@ -104,7 +105,7 @@ export default class BulkPaymentFeature extends LightningElement {
                 console.log('Bank Accounts fetched:', result);
                 this.bankAccountOptions = result.map(acc => ({
                     label: acc.Name,
-                    value: String(acc.natdev24__Nominal_Code__c)
+                    value: acc.Id
                 }));
                 console.log('Loaded Bank Accounts:', this.bankAccountOptions);
             })
@@ -166,12 +167,25 @@ export default class BulkPaymentFeature extends LightningElement {
         }
 
         console.log('Processing payments:', {
-            invoices: selectedInvoices,
-            paymentDate: this.paymentDate,
-            bankAccount: this.bankAccount,
+            piHeaderList: selectedInvoices,
             exchangeRate: this.exchangeRate,
+            selectedNominalCode: this.bankAccount,
+            totalInvoiceAmount: this.totalAmount,
+            postingDate: this.paymentDate,
             reference: this.paymentReference
         });
+
+        const result = await processBulkPayment({
+            piHeaderList: selectedInvoices,
+            exchangeRate: this.exchangeRate,
+            selectedNominalCode: this.bankAccount,
+            totalInvoiceAmount: this.totalAmount,
+            postingDate: this.paymentDate,
+            reference: this.paymentReference
+        });
+
+        console.log('Payment processing result:', result);
+
 
         await this.showAlert(
             'Success',
