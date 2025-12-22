@@ -10,10 +10,6 @@ export default class BulkPaymentFeature extends LightningElement {
 
     @track invoiceRecords = [];
     @track selectedRows = [];
-    @track filterAccount = '';
-    @track filterFromDate = '';
-    @track filterToDate = '';
-    @track filterReference = '';
     @track paymentDate = '';
     @track bankAccount = '';
     @track exchangeRate = '';
@@ -67,7 +63,7 @@ export default class BulkPaymentFeature extends LightningElement {
     ];
 
     connectedCallback() {
-        console.log('Record Ids :', this.recordIds);
+        // console.log('Record Ids :', this.recordIds);
         this.loadBankAccounts();
         if (this.recordIds) {
             const recordIdArray = this.recordIds.split(',').map(id => id.trim());
@@ -85,12 +81,11 @@ export default class BulkPaymentFeature extends LightningElement {
                     accountName: invoice.natdev24__Account__r?.Name || ''
                 }));
                 this.selectedRows = this.invoiceRecords.map(inv => inv.Id);
-                console.log('Loaded Invoices:', this.invoiceRecords);
+                // console.log('Loaded Invoices:', this.invoiceRecords);
                 this.isLoading = false;
             })
             .catch(error => {
                 console.error('Error loading invoices:', error);
-                this.showToast('Error', 'Failed to load invoice details', 'error');
                 this.isLoading = false;
             });
     }
@@ -98,16 +93,15 @@ export default class BulkPaymentFeature extends LightningElement {
     loadBankAccounts() {
         getBankAccounts()
             .then(result => {
-                console.log('Bank Accounts fetched:', result);
+                // console.log('Bank Accounts fetched:', result);
                 this.bankAccountOptions = result.map(acc => ({
                     label: acc.Name,
                     value: acc.Id
                 }));
-                console.log('Loaded Bank Accounts:', this.bankAccountOptions);
+                // console.log('Loaded Bank Accounts:', this.bankAccountOptions);
             })
             .catch(error => {
                 console.error('Error loading bank accounts:', error);
-                this.showToast('Error', 'Failed to load bank accounts', 'error');
             });
     }
 

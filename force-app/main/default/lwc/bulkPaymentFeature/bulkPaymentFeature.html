@@ -60,7 +60,7 @@
                 <div class="slds-grid slds-gutters slds-wrap">
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input type="date" label="Date" value={paymentDate} data-field="paymentDate"
-                            onchange={handlePaymentFieldChange} required>
+                            placeholder="Select Date" onchange={handlePaymentFieldChange} required>
                         </lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
@@ -71,12 +71,13 @@
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input type="number" label="Fx rate" value={exchangeRate} data-field="exchangeRate"
-                            onchange={handlePaymentFieldChange} formatter="decimal" step="0.0001" required>
+                            placeholder="FX Rate" onchange={handlePaymentFieldChange} formatter="decimal" step="0.0001"
+                            required>
                         </lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input label="Reference Pay" value={paymentReference} data-field="paymentReference"
-                            onchange={handlePaymentFieldChange} required>
+                            placeholder="Reference" onchange={handlePaymentFieldChange} required>
                         </lightning-input>
                     </div>
                 </div>
