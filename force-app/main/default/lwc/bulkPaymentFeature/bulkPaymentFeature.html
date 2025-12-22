@@ -41,24 +41,22 @@
             </div> -->
 
             <!-- Invoice Datatable -->
-            <div class="slds-m-bottom_medium">
+            <div class="slds-m-bottom_medium" style="max-height: 300px; overflow-y: auto;">
                 <lightning-datatable key-field="Id" data={invoiceRecords} columns={columns}
-                    onrowselection={handleRowSelection} selected-rows={selectedRows} max-row-selection="1000"
-                    is-loading={isLoading} style="height: 400px;">
+                    onrowselection={handleRowSelection} selected-rows={selectedRows} is-loading={isLoading}>
                 </lightning-datatable>
-
-                <!-- Total Amount -->
-                <div class="slds-grid slds-grid_align-end slds-p-around_small">
-                    <div class="slds-text-heading_small" style="font-weight: bold;">
-                        Total Amount:
-                        <lightning-formatted-number value={totalAmount}>
-                        </lightning-formatted-number>
-                    </div>
+            </div>
+            <!-- Total Amount -->
+            <div class="slds-grid slds-grid_align-end slds-p-around_small">
+                <div class="slds-text-heading_small" style="font-weight: bold;">
+                    Total Amount:
+                    <lightning-formatted-number value={totalAmount}>
+                    </lightning-formatted-number>
                 </div>
             </div>
 
             <!-- Payment Details Section -->
-            <div class="slds-box">
+            <div class="slds-m-around_medium">
                 <div class="slds-grid slds-gutters slds-wrap">
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input type="date" label="Date" value={paymentDate} data-field="paymentDate"
@@ -66,18 +64,22 @@
                         </lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
-                        <lightning-input label="Bank Account" value={bankAccount} data-field="bankAccount"
+                        <!-- <lightning-input label="Bank Account" value={bankAccount} data-field="bankAccount"
                             onchange={handlePaymentFieldChange} required>
-                        </lightning-input>
+                        </lightning-input> -->
+                        <lightning-combobox label="Bank Account" value={bankAccount} placeholder="Select Bank Account"
+                            options={bankAccountOptions} data-field="bankAccount" onchange={handlePaymentFieldChange}
+                            required>
+                        </lightning-combobox>
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input type="number" label="Fx rate" value={exchangeRate} data-field="exchangeRate"
-                            onchange={handlePaymentFieldChange} formatter="decimal" step="0.0001">
+                            onchange={handlePaymentFieldChange} formatter="decimal" step="0.0001" required>
                         </lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-4">
                         <lightning-input label="Reference Pay" value={paymentReference} data-field="paymentReference"
-                            onchange={handlePaymentFieldChange}>
+                            onchange={handlePaymentFieldChange} required>
                         </lightning-input>
                     </div>
                 </div>
@@ -87,7 +89,7 @@
                     <lightning-button variant="neutral" label="Cancel" onclick={handleCancel}
                         class="slds-m-left_x-small">
                     </lightning-button>
-                    <lightning-button variant="brand" label="Pay" onclick={handlePay} class="slds-m-left_x-small">
+                    <lightning-button variant="brand" label="Pay" onclick={handlePay} class="slds-m-left_medium">
                     </lightning-button>
                 </div>
             </div>

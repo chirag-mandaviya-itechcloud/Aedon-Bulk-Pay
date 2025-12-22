@@ -3,6 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { FlowNavigationNextEvent, FlowNavigationFinishEvent } from 'lightning/flowSupport';
 import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
+import getBankAccounts from '@salesforce/apex/BulkPaymentFeatureController.getBankAccounts';
 
 export default class BulkPaymentFeature extends LightningElement {
     @api recordIds;
@@ -19,6 +20,7 @@ export default class BulkPaymentFeature extends LightningElement {
     @track bankAccount = '';
     @track exchangeRate = '';
     @track paymentReference = '';
+    @track bankAccountOptions = [];
 
     isLoading = false;
 
@@ -68,6 +70,7 @@ export default class BulkPaymentFeature extends LightningElement {
 
     connectedCallback() {
         console.log('Record Ids :', this.recordIds);
+        this.loadBankAccounts();
         if (this.recordIds) {
             const recordIdArray = this.recordIds.split(',').map(id => id.trim());
             this.loadInvoiceDetails(recordIdArray);
@@ -95,11 +98,21 @@ export default class BulkPaymentFeature extends LightningElement {
             });
     }
 
-    // handleFilterChange(event) {
-    //     const field = event.target.dataset.field;
-    //     this[field] = event.target.value;
-    //     console.log(`Filter changed: ${field} = ${this[field]}`);
-    // }
+    loadBankAccounts() {
+        getBankAccounts()
+            .then(result => {
+                console.log('Bank Accounts fetched:', result);
+                this.bankAccountOptions = result.map(acc => ({
+                    label: acc.Name,
+                    value: String(acc.natdev24__Nominal_Code__c)
+                }));
+                console.log('Loaded Bank Accounts:', this.bankAccountOptions);
+            })
+            .catch(error => {
+                console.error('Error loading bank accounts:', error);
+                this.showToast('Error', 'Failed to load bank accounts', 'error');
+            });
+    }
 
     handleRowSelection(event) {
         this.selectedRows = event.detail.selectedRows.map(row => row.Id);
@@ -109,6 +122,8 @@ export default class BulkPaymentFeature extends LightningElement {
     handlePaymentFieldChange(event) {
         const field = event.target.dataset.field;
         this[field] = event.target.value;
+
+        console.log(`Payment field changed: ${field} = ${this[field]}`);
     }
 
     get totalAmount() {
@@ -118,58 +133,35 @@ export default class BulkPaymentFeature extends LightningElement {
             .toFixed(2);
     }
 
-    // filterInvoices() {
-    //     const filteredPI = this.invoiceRecords.filter(invoice => {
-    //         const matchAccount = !this.filterAccount ||
-    //             invoice.accountName.toLowerCase().includes(this.filterAccount.toLowerCase());
-    //         const matchReference = !this.filterReference ||
-    //             invoice.Name.toLowerCase().includes(this.filterReference.toLowerCase());
-
-    //         let matchFromDate = true;
-    //         let matchToDate = true;
-    //         if (this.filterFromDate && invoice.natdev24__Invoice_Date__c) {
-    //             matchFromDate = invoice.natdev24__Invoice_Date__c >= this.filterFromDate;
-    //         }
-    //         if (this.filterToDate && invoice.natdev24__Invoice_Date__c) {
-    //             matchToDate = invoice.natdev24__Invoice_Date__c <= this.filterToDate;
-    //         }
-
-    //         return matchAccount && matchReference && matchFromDate && matchToDate;
-    //     });
-
-    //     console.log('Filtered Invoices:', filteredPI);
-    //     return filteredPI;
-    // }
-
-    // handleApplyFilter() {
-    //     // this.filteredInvoices = [...this.filterInvoices()];
-    //     // Clear selection when filters change
-    //     this.selectedRows = [];
-    //     this.showToast('Success', 'Filters applied', 'success');
-    // }
-
-    // handleApplyClearFilter() {
-    //     this.filteredInvoices = [...this.invoiceRecords];
-    //     this.filterAccount = '';
-    //     this.filterFromDate = '';
-    //     this.filterToDate = '';
-    //     this.filterReference = '';
-    //     this.selectedRows = [];
-    //     this.showToast('Success', 'Filters cleared', 'success');
-    // }
-
-    handlePay() {
+    async handlePay() {
         const selectedInvoices = this.invoiceRecords.filter(inv =>
             this.selectedRows.includes(inv.Id)
         );
 
         if (selectedInvoices.length === 0) {
-            this.showToast('Warning', 'Please select at least one invoice', 'warning');
+            await this.showAlert('Error', 'Please select at least one invoice.', 'error');
             return;
         }
 
-        if (!this.paymentDate || !this.bankAccount) {
-            this.showToast('Warning', 'Please fill in payment details', 'warning');
+        if (!this.paymentDate || !this.bankAccount || !this.exchangeRate || !this.paymentReference) {
+            await this.showAlert(
+                'Error',
+                'Please fill all mandatory payment details.',
+                'error'
+            );
+            return;
+        }
+
+        const currencies = new Set(
+            selectedInvoices.map(inv => inv.natdev24__Currency__r.Name)
+        );
+
+        if (currencies.size > 1) {
+            await this.showAlert(
+                'Error',
+                'Selected invoices must have the same currency.',
+                'error'
+            );
             return;
         }
 
@@ -181,7 +173,11 @@ export default class BulkPaymentFeature extends LightningElement {
             reference: this.paymentReference
         });
 
-        this.showToast('Success', 'Payments posted successfully', 'success');
+        await this.showAlert(
+            'Success',
+            'Payments posted successfully.',
+            'success'
+        );
     }
 
     handleCancel() {
