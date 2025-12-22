@@ -23,13 +23,13 @@ public class BulkPaymentFeatureController {
     @AuraEnabled
     public static PurchaseInvoiceBulkPay.piWrapper processBulkPayment(List<natdev24__Purchase_Invoice_Header__c> piHeaderList, Decimal exchangeRate, String selectedNominalCode,Decimal totalInvoiceAmount, Date postingDate, String reference){
         try {
-            System.debug('### Bulk Payment Result: ');
-            System.debug('### PI Header List: ' + piHeaderList);
-            System.debug('### Exchange Rate: ' + exchangeRate);
-            System.debug('### Selected Nominal Code: ' + selectedNominalCode);
-            System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
-            System.debug('### Posting Date: ' + postingDate);
-            System.debug('### Reference: ' + reference);
+            // System.debug('### Bulk Payment Result: ');
+            // System.debug('### PI Header List: ' + piHeaderList);
+            // System.debug('### Exchange Rate: ' + exchangeRate);
+            // System.debug('### Selected Nominal Code: ' + selectedNominalCode);
+            // System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
+            // System.debug('### Posting Date: ' + postingDate);
+            // System.debug('### Reference: ' + reference);
             PurchaseInvoiceBulkPay.piWrapper resultWrapper = PurchaseInvoiceBulkPay.bulkPayPI1(piHeaderList,exchangeRate,selectedNominalCode,postingDate,totalInvoiceAmount,null,piHeaderList,null,reference);
             return resultWrapper;
         } catch (Exception e) {

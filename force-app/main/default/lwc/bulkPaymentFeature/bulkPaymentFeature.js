@@ -1,6 +1,4 @@
 import { LightningElement, api, track } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { FlowNavigationNextEvent, FlowNavigationFinishEvent } from 'lightning/flowSupport';
 import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
 import getBankAccounts from '@salesforce/apex/BulkPaymentFeatureController.getBankAccounts';
@@ -11,7 +9,6 @@ export default class BulkPaymentFeature extends LightningElement {
     @api availableActions = [];
 
     @track invoiceRecords = [];
-    // @track filteredInvoices = [];
     @track selectedRows = [];
     @track filterAccount = '';
     @track filterFromDate = '';
@@ -87,7 +84,6 @@ export default class BulkPaymentFeature extends LightningElement {
                     ...invoice,
                     accountName: invoice.natdev24__Account__r?.Name || ''
                 }));
-                // this.filteredInvoices = [...this.invoiceRecords];
                 this.selectedRows = this.invoiceRecords.map(inv => inv.Id);
                 console.log('Loaded Invoices:', this.invoiceRecords);
                 this.isLoading = false;
@@ -117,14 +113,14 @@ export default class BulkPaymentFeature extends LightningElement {
 
     handleRowSelection(event) {
         this.selectedRows = event.detail.selectedRows.map(row => row.Id);
-        console.log('Selected Rows:', this.selectedRows);
+        // console.log('Selected Rows:', this.selectedRows);
     }
 
     handlePaymentFieldChange(event) {
         const field = event.target.dataset.field;
         this[field] = event.target.value;
 
-        console.log(`Payment field changed: ${field} = ${this[field]}`);
+        // console.log(`Payment field changed: ${field} = ${this[field]}`);
     }
 
     get totalAmount() {
@@ -166,14 +162,14 @@ export default class BulkPaymentFeature extends LightningElement {
             return;
         }
 
-        console.log('Processing payments:', {
-            piHeaderList: selectedInvoices,
-            exchangeRate: this.exchangeRate,
-            selectedNominalCode: this.bankAccount,
-            totalInvoiceAmount: this.totalAmount,
-            postingDate: this.paymentDate,
-            reference: this.paymentReference
-        });
+        // console.log('Processing payments:', {
+        //     piHeaderList: selectedInvoices,
+        //     exchangeRate: this.exchangeRate,
+        //     selectedNominalCode: this.bankAccount,
+        //     totalInvoiceAmount: this.totalAmount,
+        //     postingDate: this.paymentDate,
+        //     reference: this.paymentReference
+        // });
 
         const result = await processBulkPayment({
             piHeaderList: selectedInvoices,
@@ -184,7 +180,7 @@ export default class BulkPaymentFeature extends LightningElement {
             reference: this.paymentReference
         });
 
-        console.log('Payment processing result:', result);
+        // console.log('Payment processing result:', result);
 
 
         await this.showAlert(
@@ -195,12 +191,8 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     handleCancel() {
-        console.log('Cancel clicked - forcing navigation');
+        // console.log('Cancel clicked - forcing navigation');
         window.location.replace('/lightning/o/natdev24__Purchase_Invoice_Header__c/list?filterName=Recent');
-    }
-
-    showToast(title, message, variant) {
-        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
 
     async showAlert(title, message, theme = 'success') {
