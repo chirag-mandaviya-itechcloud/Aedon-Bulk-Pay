@@ -175,13 +175,17 @@ export default class BulkPaymentFeature extends LightningElement {
         });
 
         // console.log('Payment processing result:', result);
+        if (result) {
+            await this.showAlert(
+                'Success',
+                'Payments posted successfully.',
+                'success'
+            );
+            setTimeout(() => {
+                this.handleCancel();
+            }, 500);
+        }
 
-
-        await this.showAlert(
-            'Success',
-            'Payments posted successfully.',
-            'success'
-        );
     }
 
     handleCancel() {
