@@ -64,6 +64,7 @@ export default class BulkPaymentFeature extends LightningElement {
 
     connectedCallback() {
         // console.log('Record Ids :', this.recordIds);
+        this.validateAndLoadData();
         this.loadBankAccounts();
         if (this.recordIds) {
             const recordIdArray = this.recordIds.split(',').map(id => id.trim());
@@ -71,10 +72,16 @@ export default class BulkPaymentFeature extends LightningElement {
         }
     }
 
+    validateAndLoadData() {
+        if (!this.recordIds) {
+            this.showAlertAndReturn('Error', 'Please select at least one invoice.', 'error');
+        }
+    }
+
     loadInvoiceDetails(recordIdArray) {
         this.isLoading = true;
         getPurchaseInvoiceDetails({ invoiceIds: recordIdArray })
-            .then(result => {
+            .then(async result => {
                 // Add accountName field for datatable display
                 this.invoiceRecords = result.map(invoice => ({
                     ...invoice,
@@ -83,6 +90,26 @@ export default class BulkPaymentFeature extends LightningElement {
                 this.selectedRows = this.invoiceRecords.map(inv => inv.Id);
                 // console.log('Loaded Invoices:', this.invoiceRecords);
                 this.isLoading = false;
+
+                if (this.invoiceRecords.length === 0) {
+                    await this.showAlertAndReturn(
+                        'Error',
+                        'No valid invoices found for the selected records',
+                        'error'
+                    );
+                }
+
+                const currencies = new Set(
+                    this.invoiceRecords.map(inv => inv.natdev24__Currency__r.Name)
+                );
+
+                if (currencies.size > 1) {
+                    await this.showAlertAndReturn(
+                        'Error',
+                        'Selected invoices must have the same currency',
+                        'error'
+                    );
+                }
             })
             .catch(error => {
                 console.error('Error loading invoices:', error);
@@ -129,11 +156,6 @@ export default class BulkPaymentFeature extends LightningElement {
             this.selectedRows.includes(inv.Id)
         );
 
-        if (selectedInvoices.length === 0) {
-            await this.showAlert('Error', 'Please select at least one invoice.', 'error');
-            return;
-        }
-
         if (!this.paymentDate || !this.bankAccount || !this.exchangeRate || !this.paymentReference) {
             await this.showAlert(
                 'Error',
@@ -143,18 +165,18 @@ export default class BulkPaymentFeature extends LightningElement {
             return;
         }
 
-        const currencies = new Set(
-            selectedInvoices.map(inv => inv.natdev24__Currency__r.Name)
-        );
+        // const currencies = new Set(
+        //     selectedInvoices.map(inv => inv.natdev24__Currency__r.Name)
+        // );
 
-        if (currencies.size > 1) {
-            await this.showAlert(
-                'Error',
-                'Selected invoices must have the same currency.',
-                'error'
-            );
-            return;
-        }
+        // if (currencies.size > 1) {
+        //     await this.showAlert(
+        //         'Error',
+        //         'Selected invoices must have the same currency.',
+        //         'error'
+        //     );
+        //     return;
+        // }
 
         // console.log('Processing payments:', {
         //     piHeaderList: selectedInvoices,
@@ -175,17 +197,24 @@ export default class BulkPaymentFeature extends LightningElement {
         });
 
         // console.log('Payment processing result:', result);
+        // if (result) {
+        //     await this.showAlert(
+        //         'Success',
+        //         'Selected Invoices are paid with Outstanding Amount',
+        //         'success'
+        //     );
+        //     setTimeout(() => {
+        //         this.handleCancel();
+        //     }, 500);
+        // }
+
         if (result) {
-            await this.showAlert(
+            await this.showAlertAndReturn(
                 'Success',
-                'Payments posted successfully.',
+                'Selected Invoices are paid with Outstanding Amount',
                 'success'
             );
-            setTimeout(() => {
-                this.handleCancel();
-            }, 500);
         }
-
     }
 
     handleCancel() {
@@ -199,5 +228,16 @@ export default class BulkPaymentFeature extends LightningElement {
             theme,
             label: title
         });
+    }
+
+    async showAlertAndReturn(title, message, theme = 'success') {
+        await LightningAlert.open({
+            message,
+            theme,
+            label: title
+        });
+        setTimeout(() => {
+            this.handleCancel();
+        }, 300);
     }
 }
