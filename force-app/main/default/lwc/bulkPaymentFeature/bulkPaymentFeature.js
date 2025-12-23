@@ -106,7 +106,7 @@ export default class BulkPaymentFeature extends LightningElement {
                 if (currencies.size > 1) {
                     await this.showAlertAndReturn(
                         'Error',
-                        'Select Invoices with sameCurrency',
+                        'Select Invoices with same Currency',
                         'error'
                     );
                 }
