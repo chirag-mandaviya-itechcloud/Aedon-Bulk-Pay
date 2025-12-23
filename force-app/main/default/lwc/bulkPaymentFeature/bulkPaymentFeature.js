@@ -165,19 +165,6 @@ export default class BulkPaymentFeature extends LightningElement {
             return;
         }
 
-        // const currencies = new Set(
-        //     selectedInvoices.map(inv => inv.natdev24__Currency__r.Name)
-        // );
-
-        // if (currencies.size > 1) {
-        //     await this.showAlert(
-        //         'Error',
-        //         'Selected invoices must have the same currency.',
-        //         'error'
-        //     );
-        //     return;
-        // }
-
         // console.log('Processing payments:', {
         //     piHeaderList: selectedInvoices,
         //     exchangeRate: this.exchangeRate,
@@ -196,18 +183,6 @@ export default class BulkPaymentFeature extends LightningElement {
             reference: this.paymentReference
         });
 
-        // console.log('Payment processing result:', result);
-        // if (result) {
-        //     await this.showAlert(
-        //         'Success',
-        //         'Selected Invoices are paid with Outstanding Amount',
-        //         'success'
-        //     );
-        //     setTimeout(() => {
-        //         this.handleCancel();
-        //     }, 500);
-        // }
-
         if (result) {
             await this.showAlertAndReturn(
                 'Success',
@@ -220,14 +195,6 @@ export default class BulkPaymentFeature extends LightningElement {
     handleCancel() {
         // console.log('Cancel clicked - forcing navigation');
         window.location.replace('/lightning/o/natdev24__Purchase_Invoice_Header__c/list?filterName=Recent');
-    }
-
-    async showAlert(title, message, theme = 'success') {
-        await LightningAlert.open({
-            message,
-            theme,
-            label: title
-        });
     }
 
     async showAlertAndReturn(title, message, theme = 'success') {
