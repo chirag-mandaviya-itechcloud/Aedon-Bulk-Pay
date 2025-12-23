@@ -74,7 +74,7 @@ export default class BulkPaymentFeature extends LightningElement {
 
     validateAndLoadData() {
         if (!this.recordIds) {
-            this.showAlertAndReturn('Error', 'Please select at least one invoice.', 'error');
+            this.showAlertAndReturn('Error', 'Select Invoices with Outstanding Balance', 'error');
         }
     }
 
@@ -94,7 +94,7 @@ export default class BulkPaymentFeature extends LightningElement {
                 if (this.invoiceRecords.length === 0) {
                     await this.showAlertAndReturn(
                         'Error',
-                        'No valid invoices found for the selected records',
+                        'Select Invoices with Outstanding Balance',
                         'error'
                     );
                 }
@@ -106,7 +106,7 @@ export default class BulkPaymentFeature extends LightningElement {
                 if (currencies.size > 1) {
                     await this.showAlertAndReturn(
                         'Error',
-                        'Selected invoices must have the same currency',
+                        'Select Invoices with sameCurrency',
                         'error'
                     );
                 }
