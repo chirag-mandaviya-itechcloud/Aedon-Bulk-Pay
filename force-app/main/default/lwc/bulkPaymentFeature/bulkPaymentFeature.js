@@ -197,6 +197,14 @@ export default class BulkPaymentFeature extends LightningElement {
         window.location.replace('/lightning/o/natdev24__Purchase_Invoice_Header__c/list?filterName=Recent');
     }
 
+    async showAlert(title, message, theme = 'success') {
+        await LightningAlert.open({
+            message,
+            theme,
+            label: title
+        });
+    }
+
     async showAlertAndReturn(title, message, theme = 'success') {
         await LightningAlert.open({
             message,
