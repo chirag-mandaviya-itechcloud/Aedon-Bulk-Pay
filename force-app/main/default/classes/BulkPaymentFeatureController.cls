@@ -31,16 +31,35 @@ public class BulkPaymentFeatureController {
     }
 
     @AuraEnabled
-    public static PurchaseInvoiceBulkPay.piWrapper processBulkPayment(List<natdev24__Purchase_Invoice_Header__c> piHeaderList, Decimal exchangeRate, String selectedNominalCode,Decimal totalInvoiceAmount, Date postingDate, String reference){
+    public static PurchaseInvoiceBulkPay.piWrapper processPurchaseInvoiceBulkPayment(List<natdev24__Purchase_Invoice_Header__c> piHeaderList, Decimal exchangeRate, String selectedNominalCode,Decimal totalInvoiceAmount, Date postingDate, String reference){
         try {
-            // System.debug('### Bulk Payment Result: ');
+            // System.debug('### Purchase InvoiceBulk Payment Result: ');
             // System.debug('### PI Header List: ' + piHeaderList);
             // System.debug('### Exchange Rate: ' + exchangeRate);
             // System.debug('### Selected Nominal Code: ' + selectedNominalCode);
             // System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
             // System.debug('### Posting Date: ' + postingDate);
             // System.debug('### Reference: ' + reference);
+            // System.debug('### Purchase Invoice Header ');
             PurchaseInvoiceBulkPay.piWrapper resultWrapper = PurchaseInvoiceBulkPay.bulkPayPI1(piHeaderList,exchangeRate,selectedNominalCode,postingDate,totalInvoiceAmount,null,piHeaderList,null,reference);
+            return resultWrapper;
+        } catch (Exception e) {
+            throw new AuraHandledException(e.getMessage());
+        }
+    }
+
+    @AuraEnabled
+    public static SalesInvoiceBulkPay.siWrapper processSalesInvoiceBulkPayment(List<natdev24__Sales_Invoice_Header__c> siHeaderList, Decimal exchangeRate, String selectedNominalCode,Decimal totalInvoiceAmount, Date postingDate, String reference){
+        try {
+            // System.debug('### Sales Invoice Bulk Payment Result: ');
+            // System.debug('### SI Header List: ' + siHeaderList);
+            // System.debug('### Exchange Rate: ' + exchangeRate);
+            // System.debug('### Selected Nominal Code: ' + selectedNominalCode);
+            // System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
+            // System.debug('### Posting Date: ' + postingDate);
+            // System.debug('### Reference: ' + reference);
+            // System.debug('### Sales Invoice Header ');
+            SalesInvoiceBulkPay.siWrapper resultWrapper = SalesInvoiceBulkPay.bulkPaySI1(siHeaderList,exchangeRate,selectedNominalCode,postingDate,totalInvoiceAmount,null,siHeaderList,null,reference);
             return resultWrapper;
         } catch (Exception e) {
             throw new AuraHandledException(e.getMessage());

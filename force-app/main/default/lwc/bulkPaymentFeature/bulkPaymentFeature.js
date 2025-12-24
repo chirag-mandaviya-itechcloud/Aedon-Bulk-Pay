@@ -3,7 +3,8 @@ import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
 import getSalesInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getSalesInvoiceDetails';
 import getBankAccounts from '@salesforce/apex/BulkPaymentFeatureController.getBankAccounts';
-import processBulkPayment from '@salesforce/apex/BulkPaymentFeatureController.processBulkPayment';
+import processPurchaseInvoiceBulkPayment from '@salesforce/apex/BulkPaymentFeatureController.processPurchaseInvoiceBulkPayment';
+import processSalesInvoiceBulkPayment from '@salesforce/apex/BulkPaymentFeatureController.processSalesInvoiceBulkPayment';
 import getInvoiceType from '@salesforce/apex/BulkPaymentFeatureController.getInvoiceType';
 
 export default class BulkPaymentFeature extends LightningElement {
@@ -143,13 +144,22 @@ export default class BulkPaymentFeature extends LightningElement {
             });
     }
 
-    getApexControllerMethod() {
+    getApexControllerMethodForGetDetails() {
         if (this.invoiceType === 'Purchase') {
             return getPurchaseInvoiceDetails;
         } else if (this.invoiceType === 'Sales') {
             return getSalesInvoiceDetails;
         }
 
+        return null;
+    }
+
+    getApexControllerMethodForProcessBulkPayment() {
+        if (this.invoiceType === 'Purchase') {
+            return processPurchaseInvoiceBulkPayment;
+        } else if (this.invoiceType === 'Sales') {
+            return processSalesInvoiceBulkPayment;
+        }
         return null;
     }
 
@@ -176,7 +186,7 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     loadInvoiceDetails(recordIdArray) {
-        const apexControllerMethod = this.getApexControllerMethod();
+        const apexControllerMethod = this.getApexControllerMethodForGetDetails();
 
         if (!apexControllerMethod) {
             console.error('No Apex controller method found for invoice type:', this.invoiceType);
@@ -242,43 +252,62 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     async handlePay() {
-        const selectedInvoices = this.invoiceRecords.filter(inv =>
-            this.selectedRows.includes(inv.Id)
-        );
+        try {
+            this.isLoading = true;
 
-        if (!this.paymentDate || !this.bankAccount || !this.exchangeRate || !this.paymentReference) {
-            await this.showAlert(
-                'Error',
-                'Please fill all mandatory payment details.',
-                'error'
+            const selectedInvoices = this.invoiceRecords.filter(inv =>
+                this.selectedRows.includes(inv.Id)
             );
-            return;
-        }
 
-        // console.log('Processing payments:', {
-        //     piHeaderList: selectedInvoices,
-        //     exchangeRate: this.exchangeRate,
-        //     selectedNominalCode: this.bankAccount,
-        //     totalInvoiceAmount: this.totalAmount,
-        //     postingDate: this.paymentDate,
-        //     reference: this.paymentReference
-        // });
+            if (!this.paymentDate || !this.bankAccount || !this.exchangeRate || !this.paymentReference) {
+                await this.showAlert(
+                    'Error',
+                    'Please fill all mandatory payment details.',
+                    'error'
+                );
+                return;
+            }
 
-        const result = await processBulkPayment({
-            piHeaderList: selectedInvoices,
-            exchangeRate: this.exchangeRate,
-            selectedNominalCode: this.bankAccount,
-            totalInvoiceAmount: this.totalAmount,
-            postingDate: this.paymentDate,
-            reference: this.paymentReference
-        });
+            let params = {
+                exchangeRate: this.exchangeRate,
+                selectedNominalCode: this.bankAccount,
+                totalInvoiceAmount: this.totalAmount,
+                postingDate: this.paymentDate,
+                reference: this.paymentReference
+            }
 
-        if (result) {
-            await this.showAlertAndReturn(
-                'Success',
-                'Selected Invoices are paid with Outstanding Amount',
-                'success'
-            );
+            console.log('Processing payments:', {
+                HeaderList: selectedInvoices,
+                exchangeRate: this.exchangeRate,
+                selectedNominalCode: this.bankAccount,
+                totalInvoiceAmount: this.totalAmount,
+                postingDate: this.paymentDate,
+                reference: this.paymentReference
+            });
+
+            const processApexMethod = await this.getApexControllerMethodForProcessBulkPayment();
+
+            if (this.invoiceType === 'Purchase') {
+                params.piHeaderList = selectedInvoices;
+            } else if (this.invoiceType === 'Sales') {
+                params.siHeaderList = selectedInvoices;
+            }
+
+            const result = await processApexMethod(params);
+
+            if (result) {
+                await this.showAlertAndReturn(
+                    'Success',
+                    'Selected Invoices are paid with Outstanding Amount',
+                    'success'
+                );
+            }
+
+        } catch (error) {
+            console.error('Error processing bulk payment:', error);
+            await this.showAlert('Error', 'An error occurred while processing payments.', 'error');
+        } finally {
+            this.isLoading = false;
         }
     }
 
