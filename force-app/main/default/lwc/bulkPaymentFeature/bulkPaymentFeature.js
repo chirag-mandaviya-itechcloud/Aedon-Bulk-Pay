@@ -177,6 +177,12 @@ export default class BulkPaymentFeature extends LightningElement {
 
     loadInvoiceDetails(recordIdArray) {
         const apexControllerMethod = this.getApexControllerMethod();
+
+        if (!apexControllerMethod) {
+            console.error('No Apex controller method found for invoice type:', this.invoiceType);
+            return;
+        }
+
         this.isLoading = true;
 
         apexControllerMethod({ invoiceIds: recordIdArray })
