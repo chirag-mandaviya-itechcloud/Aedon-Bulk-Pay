@@ -115,7 +115,7 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     connectedCallback() {
-        console.log('Record Ids :', this.recordIds);
+        // console.log('Record Ids :', this.recordIds);
         this.checkRecordsIsSelected();
         this.loadBankAccounts();
         if (this.recordIds) {
@@ -175,7 +175,7 @@ export default class BulkPaymentFeature extends LightningElement {
                     } else if (result.apiName.includes('Sales_Invoice')) {
                         this.invoiceType = 'Sales';
                     }
-                    console.log('Invoice Type:', this.invoiceType);
+                    // console.log('Invoice Type:', this.invoiceType);
                     const recordIdArray = this.recordIds.split(',').map(id => id.trim());
                     this.loadInvoiceDetails(recordIdArray);
                 })
@@ -203,7 +203,7 @@ export default class BulkPaymentFeature extends LightningElement {
                     accountName: invoice.natdev24__Account__r?.Name || ''
                 }));
                 this.selectedRows = this.invoiceRecords.map(inv => inv.Id);
-                console.log('Loaded Invoices:', this.invoiceRecords);
+                // console.log('Loaded Invoices:', this.invoiceRecords);
                 this.isLoading = false;
 
                 if (this.invoiceRecords.length === 0) {
@@ -234,14 +234,14 @@ export default class BulkPaymentFeature extends LightningElement {
 
     handleRowSelection(event) {
         this.selectedRows = event.detail.selectedRows.map(row => row.Id);
-        console.log('Selected Rows:', this.selectedRows);
+        // console.log('Selected Rows:', this.selectedRows);
     }
 
     handlePaymentFieldChange(event) {
         const field = event.target.dataset.field;
         this[field] = event.target.value;
 
-        console.log(`Payment field changed: ${field} = ${this[field]}`);
+        // console.log(`Payment field changed: ${field} = ${this[field]}`);
     }
 
     get totalAmount() {
@@ -276,14 +276,14 @@ export default class BulkPaymentFeature extends LightningElement {
                 reference: this.paymentReference
             }
 
-            console.log('Processing payments:', {
-                HeaderList: selectedInvoices,
-                exchangeRate: this.exchangeRate,
-                selectedNominalCode: this.bankAccount,
-                totalInvoiceAmount: this.totalAmount,
-                postingDate: this.paymentDate,
-                reference: this.paymentReference
-            });
+            // console.log('Processing payments:', {
+            //     HeaderList: selectedInvoices,
+            //     exchangeRate: this.exchangeRate,
+            //     selectedNominalCode: this.bankAccount,
+            //     totalInvoiceAmount: this.totalAmount,
+            //     postingDate: this.paymentDate,
+            //     reference: this.paymentReference
+            // });
 
             const processApexMethod = await this.getApexControllerMethodForProcessBulkPayment();
 
