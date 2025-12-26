@@ -159,7 +159,6 @@ private class BulkPaymentFeatureControllerTest {
             piTxn1.Purchase_VAT__c = vatObjPurchases.Id;
             insert piTxn1;
             
-            // Create Sales Invoice Headers
             Sales_Invoice_Header__c siHeader1 = new Sales_Invoice_Header__c();
             siHeader1.Account__c = customerAccount.Id;
             siHeader1.Invoice_Date__c = Date.today();
@@ -227,14 +226,11 @@ private class BulkPaymentFeatureControllerTest {
             //objPeriod.Lock_Date__c = objComp.Lock_Date__c;
             objPeriod.Period_Number__c = 20;
             insert objPeriod;
-            
-            
         }
     }
     
     @isTest
     static void testGetPurchaseInvoiceDetails_Success() {
-        // Get test Purchase Invoice Headers
         Account supplierAccount = [SELECT Id FROM Account WHERE Name = 'Test Supplier Account' LIMIT 1];
         
         List<Purchase_Invoice_Header__c> piHeaders = [
@@ -344,10 +340,8 @@ private class BulkPaymentFeatureControllerTest {
             BulkPaymentFeatureController.getBankAccounts();
         Test.stopTest();
         
-        // Should return only bank accounts (2 in test data)
         System.assertEquals(2, results.size(), 'Should return only bank category accounts');
         
-        // Verify all returned accounts are Bank category
         for (Chart_Of_Accounts__c acc : results) {
             System.assertNotEquals(null, acc.Name, 'Name should be populated');
             System.assertNotEquals(null, acc.Nominal_Code__c, 'Nominal code should be populated');
@@ -370,7 +364,6 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testProcessPurchaseInvoiceBulkPayment_Success() {
-        // Get test data
         List<Purchase_Invoice_Header__c> piHeaders = [
             SELECT Id, Name, Account__c, Invoice_Date__c, 
             Gross_Amount__c, Balance_Outstanding__c,
@@ -403,11 +396,8 @@ private class BulkPaymentFeatureControllerTest {
                     'Bulk Payment Test'
                 );
             
-            // Verify result is not null
             System.assertNotEquals(null, result, 'Result wrapper should not be null');
         } catch (Exception e) {
-            // If PurchaseInvoiceBulkPay class has specific requirements, it might throw
-            // This is acceptable as we're testing the controller's error handling
             System.assert(e instanceof AuraHandledException, 
                           'Should throw AuraHandledException on error');
         }
@@ -416,10 +406,10 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testProcessPurchaseInvoiceBulkPayment_EmptyList() {
-        natdev24__Chart_Of_Accounts__c bankAccount = [
+        Chart_Of_Accounts__c bankAccount = [
             SELECT Id 
-            FROM natdev24__Chart_Of_Accounts__c 
-            WHERE natdev24__Category__c = 'Bank' 
+            FROM Chart_Of_Accounts__c 
+            WHERE Category__c = 'Bank' 
             LIMIT 1
         ];
         
@@ -427,7 +417,7 @@ private class BulkPaymentFeatureControllerTest {
         try {
             PurchaseInvoiceBulkPay.piWrapper result = 
                 BulkPaymentFeatureController.processPurchaseInvoiceBulkPayment(
-                    new List<natdev24__Purchase_Invoice_Header__c>(),
+                    new List<Purchase_Invoice_Header__c>(),
                     1.0,
                     bankAccount.Id,
                     0,
@@ -435,10 +425,8 @@ private class BulkPaymentFeatureControllerTest {
                     'Empty List Test'
                 );
             
-            // Method should handle empty list gracefully
             System.assertNotEquals(null, result, 'Should return result even with empty list');
         } catch (AuraHandledException e) {
-            // Acceptable if the underlying class throws for empty list
             System.assert(e.getMessage().length() > 0, 'Should have error message');
         }
         Test.stopTest();
@@ -446,25 +434,24 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testProcessSalesInvoiceBulkPayment_Success() {
-        // Get test data
-        List<natdev24__Sales_Invoice_Header__c> siHeaders = [
-            SELECT Id, Name, natdev24__Account__c, natdev24__Invoice_Date__c, 
-            natdev24__Gross_Amount__c, natdev24__Balance_Outstanding__c,
-            natdev24__Currency__c, natdev24__Company__c
-            FROM natdev24__Sales_Invoice_Header__c 
-            WHERE natdev24__Balance_Outstanding__c > 0
+        List<Sales_Invoice_Header__c> siHeaders = [
+            SELECT Id, Name, Account__c, Invoice_Date__c, 
+            Gross_Amount__c, Balance_Outstanding__c,
+            Currency__c, Company__c
+            FROM Sales_Invoice_Header__c 
+            WHERE Balance_Outstanding__c > 0
         ];
         
-        natdev24__Chart_Of_Accounts__c bankAccount = [
+        Chart_Of_Accounts__c bankAccount = [
             SELECT Id 
-            FROM natdev24__Chart_Of_Accounts__c 
-            WHERE natdev24__Category__c = 'Bank' 
+            FROM Chart_Of_Accounts__c 
+            WHERE Category__c = 'Bank' 
             LIMIT 1
         ];
         
         Decimal totalAmount = 0;
-        for (natdev24__Sales_Invoice_Header__c si : siHeaders) {
-            totalAmount += si.natdev24__Balance_Outstanding__c;
+        for (Sales_Invoice_Header__c si : siHeaders) {
+            totalAmount += si.Balance_Outstanding__c;
         }
         
         Test.startTest();
@@ -479,11 +466,8 @@ private class BulkPaymentFeatureControllerTest {
                     'Bulk Payment Test'
                 );
             
-            // Verify result is not null
             System.assertNotEquals(null, result, 'Result wrapper should not be null');
         } catch (Exception e) {
-            // If SalesInvoiceBulkPay class has specific requirements, it might throw
-            // This is acceptable as we're testing the controller's error handling
             System.assert(e instanceof AuraHandledException, 
                           'Should throw AuraHandledException on error');
         }
@@ -492,10 +476,10 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testProcessSalesInvoiceBulkPayment_EmptyList() {
-        natdev24__Chart_Of_Accounts__c bankAccount = [
+        Chart_Of_Accounts__c bankAccount = [
             SELECT Id 
-            FROM natdev24__Chart_Of_Accounts__c 
-            WHERE natdev24__Category__c = 'Bank' 
+            FROM Chart_Of_Accounts__c 
+            WHERE Category__c = 'Bank' 
             LIMIT 1
         ];
         
@@ -503,7 +487,7 @@ private class BulkPaymentFeatureControllerTest {
         try {
             SalesInvoiceBulkPay.siWrapper result = 
                 BulkPaymentFeatureController.processSalesInvoiceBulkPayment(
-                    new List<natdev24__Sales_Invoice_Header__c>(),
+                    new List<Sales_Invoice_Header__c>(),
                     1.0,
                     bankAccount.Id,
                     0,
@@ -511,10 +495,8 @@ private class BulkPaymentFeatureControllerTest {
                     'Empty List Test'
                 );
             
-            // Method should handle empty list gracefully
             System.assertNotEquals(null, result, 'Should return result even with empty list');
         } catch (AuraHandledException e) {
-            // Acceptable if the underlying class throws for empty list
             System.assert(e.getMessage().length() > 0, 'Should have error message');
         }
         Test.stopTest();
@@ -522,9 +504,9 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testGetInvoiceType_PurchaseInvoice() {
-        natdev24__Purchase_Invoice_Header__c piHeader = [
+        Purchase_Invoice_Header__c piHeader = [
             SELECT Id 
-            FROM natdev24__Purchase_Invoice_Header__c 
+            FROM Purchase_Invoice_Header__c 
             LIMIT 1
         ];
         
@@ -542,9 +524,9 @@ private class BulkPaymentFeatureControllerTest {
     
     @isTest
     static void testGetInvoiceType_SalesInvoice() {
-        natdev24__Sales_Invoice_Header__c siHeader = [
+        Sales_Invoice_Header__c siHeader = [
             SELECT Id 
-            FROM natdev24__Sales_Invoice_Header__c 
+            FROM Sales_Invoice_Header__c 
             LIMIT 1
         ];
         
@@ -594,21 +576,18 @@ private class BulkPaymentFeatureControllerTest {
         Purchase_Invoice_Header__c piHeader = [SELECT Id FROM Purchase_Invoice_Header__c LIMIT 1];
         invoiceIds.add(piHeader.Id);
         
-        // Set the flag to trigger exception
         BulkPaymentFeatureController.throwTestException = true;
         
         Test.startTest();
         try {
-            List<natdev24__Purchase_Invoice_Header__c> results = 
+            List<Purchase_Invoice_Header__c> results = 
                 BulkPaymentFeatureController.getPurchaseInvoiceDetails(invoiceIds);
             System.assert(false, 'Should have thrown exception');
         } catch (AuraHandledException e) {
-            System.debug('****Error Message : '+e.getMessage());
             System.assert(e.getMessage().contains('exception'), 'Should contain test exception message');
         }
         Test.stopTest();
         
-        // Reset flag
         BulkPaymentFeatureController.throwTestException = false;
     }
     
@@ -617,13 +596,12 @@ private class BulkPaymentFeatureControllerTest {
         List<String> invoiceIds = new List<String>();
         Sales_Invoice_Header__c siHeader = [SELECT Id FROM Sales_Invoice_Header__c LIMIT 1];
         invoiceIds.add(siHeader.Id);
-        
-        // Set the flag to trigger exception
+
         BulkPaymentFeatureController.throwTestException = true;
         
         Test.startTest();
         try {
-            List<natdev24__Sales_Invoice_Header__c> results = 
+            List<Sales_Invoice_Header__c> results = 
                 BulkPaymentFeatureController.getSalesInvoiceDetails(invoiceIds);
             System.assert(false, 'Should have thrown exception');
         } catch (AuraHandledException e) {
@@ -631,41 +609,37 @@ private class BulkPaymentFeatureControllerTest {
         }
         Test.stopTest();
         
-        // Reset flag
         BulkPaymentFeatureController.throwTestException = false;
     }
     
     @isTest
     static void testGetBankAccounts_Exception() {
-        // Set the flag to trigger exception
         BulkPaymentFeatureController.throwTestException = true;
         
         Test.startTest();
         try {
-            List<natdev24__Chart_Of_Accounts__c> results = 
+            List<Chart_Of_Accounts__c> results = 
                 BulkPaymentFeatureController.getBankAccounts();
             System.assert(false, 'Should have thrown exception');
         } catch (AuraHandledException e) {
             System.assert(e.getMessage().contains('exception'), 'Should contain test exception message');
         }
         Test.stopTest();
-        
-        // Reset flag
+
         BulkPaymentFeatureController.throwTestException = false;
     }
     
     @isTest
     static void testProcessPurchaseInvoiceBulkPayment_Exception() {
-        List<natdev24__Purchase_Invoice_Header__c> piHeaders = [
-            SELECT Id, Name FROM natdev24__Purchase_Invoice_Header__c LIMIT 1
+        List<Purchase_Invoice_Header__c> piHeaders = [
+            SELECT Id, Name FROM Purchase_Invoice_Header__c LIMIT 1
         ];
         
-        natdev24__Chart_Of_Accounts__c bankAccount = [
-            SELECT Id FROM natdev24__Chart_Of_Accounts__c 
-            WHERE natdev24__Category__c = 'Bank' LIMIT 1
+        Chart_Of_Accounts__c bankAccount = [
+            SELECT Id FROM Chart_Of_Accounts__c 
+            WHERE Category__c = 'Bank' LIMIT 1
         ];
         
-        // Set the flag to trigger exception
         BulkPaymentFeatureController.throwTestException = true;
         
         Test.startTest();
@@ -679,23 +653,21 @@ private class BulkPaymentFeatureControllerTest {
             System.assert(e.getMessage().contains('exception'), 'Should contain test exception message');
         }
         Test.stopTest();
-        
-        // Reset flag
+
         BulkPaymentFeatureController.throwTestException = false;
     }
     
     @isTest
     static void testProcessSalesInvoiceBulkPayment_Exception() {
-        List<natdev24__Sales_Invoice_Header__c> siHeaders = [
-            SELECT Id, Name FROM natdev24__Sales_Invoice_Header__c LIMIT 1
+        List<Sales_Invoice_Header__c> siHeaders = [
+            SELECT Id, Name FROM Sales_Invoice_Header__c LIMIT 1
         ];
         
-        natdev24__Chart_Of_Accounts__c bankAccount = [
-            SELECT Id FROM natdev24__Chart_Of_Accounts__c 
-            WHERE natdev24__Category__c = 'Bank' LIMIT 1
+        Chart_Of_Accounts__c bankAccount = [
+            SELECT Id FROM Chart_Of_Accounts__c 
+            WHERE Category__c = 'Bank' LIMIT 1
         ];
         
-        // Set the flag to trigger exception
         BulkPaymentFeatureController.throwTestException = true;
         
         Test.startTest();
@@ -709,8 +681,7 @@ private class BulkPaymentFeatureControllerTest {
             System.assert(e.getMessage().contains('exception'), 'Should contain test exception message');
         }
         Test.stopTest();
-        
-        // Reset flag
+
         BulkPaymentFeatureController.throwTestException = false;
     }
 }
