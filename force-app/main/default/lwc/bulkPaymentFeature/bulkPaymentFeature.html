@@ -5,6 +5,8 @@
         </div>
         <div class="slds-p-around_medium">
 
+            <lightning-spinner if:true={isLoading} alternative-text="Loading" size="medium"></lightning-spinner>
+
             <!-- Filter Section -->
             <!-- <div class="slds-box slds-m-bottom_medium">
                 <div class="slds-grid slds-gutters slds-wrap">
@@ -43,7 +45,7 @@
             <!-- Invoice Datatable -->
             <div class="slds-m-bottom_medium" style="max-height: 300px; overflow-y: auto;">
                 <lightning-datatable key-field="Id" data={invoiceRecords} columns={columns}
-                    onrowselection={handleRowSelection} selected-rows={selectedRows} is-loading={isLoading}>
+                    onrowselection={handleRowSelection} selected-rows={selectedRows}>
                 </lightning-datatable>
             </div>
             <!-- Total Amount -->
