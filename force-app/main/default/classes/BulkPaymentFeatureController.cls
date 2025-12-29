@@ -57,15 +57,6 @@ public class BulkPaymentFeatureController {
             if(Test.isRunningTest() && throwTestException) {
                 throw new AuraHandledException('Test exception in processPurchaseInvoiceBulkPayment');
             }
-            
-            // System.debug('### Purchase InvoiceBulk Payment Result: ');
-            // System.debug('### PI Header List: ' + piHeaderList);
-            // System.debug('### Exchange Rate: ' + exchangeRate);
-            // System.debug('### Selected Nominal Code: ' + selectedNominalCode);
-            // System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
-            // System.debug('### Posting Date: ' + postingDate);
-            // System.debug('### Reference: ' + reference);
-            // System.debug('### Purchase Invoice Header ');
             PurchaseInvoiceBulkPay.piWrapper resultWrapper = PurchaseInvoiceBulkPay.bulkPayPI1(piHeaderList,exchangeRate,selectedNominalCode,postingDate,totalInvoiceAmount,null,piHeaderList,null,reference);
             return resultWrapper;
         } catch (Exception e) {
@@ -80,15 +71,6 @@ public class BulkPaymentFeatureController {
             if(Test.isRunningTest() && throwTestException) {
                 throw new AuraHandledException('Test exception in processSalesInvoiceBulkPayment');
             }
-            
-            // System.debug('### Sales Invoice Bulk Payment Result: ');
-            // System.debug('### SI Header List: ' + siHeaderList);
-            // System.debug('### Exchange Rate: ' + exchangeRate);
-            // System.debug('### Selected Nominal Code: ' + selectedNominalCode);
-            // System.debug('### Total Invoice Amount: ' + totalInvoiceAmount);
-            // System.debug('### Posting Date: ' + postingDate);
-            // System.debug('### Reference: ' + reference);
-            // System.debug('### Sales Invoice Header ');
             SalesInvoiceBulkPay.siWrapper resultWrapper = SalesInvoiceBulkPay.bulkPaySI1(siHeaderList,exchangeRate,selectedNominalCode,postingDate,totalInvoiceAmount,null,siHeaderList,null,reference);
             return resultWrapper;
         } catch (Exception e) {
