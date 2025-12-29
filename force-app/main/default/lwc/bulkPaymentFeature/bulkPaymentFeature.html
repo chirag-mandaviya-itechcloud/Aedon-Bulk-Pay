@@ -7,41 +7,6 @@
 
             <lightning-spinner if:true={isLoading} alternative-text="Loading" size="medium"></lightning-spinner>
 
-            <!-- Filter Section -->
-            <!-- <div class="slds-box slds-m-bottom_medium">
-                <div class="slds-grid slds-gutters slds-wrap">
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
-                        <lightning-input label="Account" value={filterAccount} data-field="filterAccount"
-                            onchange={handleFilterChange}>
-                        </lightning-input>
-                    </div>
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
-                        <lightning-input type="date" label="From Date" value={filterFromDate}
-                            data-field="filterFromDate" onchange={handleFilterChange}>
-                        </lightning-input>
-                    </div>
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
-                        <lightning-input type="date" label="To Date" value={filterToDate} data-field="filterToDate"
-                            onchange={handleFilterChange}>
-                        </lightning-input>
-                    </div>
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
-                        <lightning-input label="Reference" value={filterReference} data-field="filterReference"
-                            onchange={handleFilterChange}>
-                        </lightning-input>
-                    </div>
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-5">
-                        <div class="slds-m-top_large">
-                            <lightning-button variant="brand" label="Filter" onclick={handleApplyFilter}>
-                            </lightning-button>
-                            <lightning-button variant="neutral" label="Clear Filter" onclick={handleApplyClearFilter}
-                                class="slds-m-left_large">
-                            </lightning-button>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-
             <!-- Invoice Datatable -->
             <div class="slds-m-bottom_medium" style="max-height: 300px; overflow-y: auto;">
                 <lightning-datatable key-field="Id" data={invoiceRecords} columns={columns}
