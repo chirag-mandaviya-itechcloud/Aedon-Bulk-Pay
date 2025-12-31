@@ -1,3 +1,17 @@
+/**
+ * BulkPaymentFeature LWC
+ *
+ * Author: Abhishek D
+ * Created Date: 19 December 2025
+ * Last Modified By: Abhishek D
+ * Last Modified Date: 19 December 2025
+ *
+ * Description:
+ * Lightning Web Component used to select and process bulk payments for
+ * purchase and sales invoices. Communicates with `BulkPaymentFeatureController`
+ * Apex methods to fetch invoice and bank account data and to execute
+ * bulk payment processing.
+ */
 import { LightningElement, api, track } from 'lwc';
 import LightningAlert from 'lightning/alert';
 import getPurchaseInvoiceDetails from '@salesforce/apex/BulkPaymentFeatureController.getPurchaseInvoiceDetails';
@@ -114,6 +128,11 @@ export default class BulkPaymentFeature extends LightningElement {
         }
     }
 
+    /**
+     * connectedCallback
+     * Component lifecycle hook. Validates selected records, loads bank
+     * accounts and loads invoice details when `recordIds` are provided.
+     */
     connectedCallback() {
         // console.log('Record Ids :', this.recordIds);
         this.checkRecordsIsSelected();
@@ -123,12 +142,22 @@ export default class BulkPaymentFeature extends LightningElement {
         }
     }
 
+    /**
+     * checkRecordsIsSelected
+     * Ensures that `recordIds` is present and shows an alert if none
+     * were provided by the host page.
+     */
     checkRecordsIsSelected() {
         if (!this.recordIds) {
             this.showAlertAndReturn('Error', 'Select Invoices with Outstanding Balance', 'error');
         }
     }
 
+    /**
+     * loadBankAccounts
+     * Calls Apex to retrieve chart-of-accounts records filtered for
+     * bank accounts and populates `bankAccountOptions` for the UI.
+     */
     loadBankAccounts() {
         getBankAccounts()
             .then(result => {
@@ -144,6 +173,11 @@ export default class BulkPaymentFeature extends LightningElement {
             });
     }
 
+    /**
+     * getApexControllerMethodForGetDetails
+     * Returns the appropriate Apex method to fetch invoice details
+     * depending on the determined invoice type (Purchase or Sales).
+     */
     getApexControllerMethodForGetDetails() {
         if (this.invoiceType === 'Purchase') {
             return getPurchaseInvoiceDetails;
@@ -154,6 +188,11 @@ export default class BulkPaymentFeature extends LightningElement {
         return null;
     }
 
+    /**
+     * getApexControllerMethodForProcessBulkPayment
+     * Returns the appropriate Apex method to process bulk payments
+     * depending on whether the invoices are Purchase or Sales type.
+     */
     getApexControllerMethodForProcessBulkPayment() {
         if (this.invoiceType === 'Purchase') {
             return processPurchaseInvoiceBulkPayment;
@@ -163,6 +202,11 @@ export default class BulkPaymentFeature extends LightningElement {
         return null;
     }
 
+    /**
+     * getObjectTypeAndLoadInvoiceDetails
+     * Determines the sObject type of the provided recordIds and sets
+     * `invoiceType` accordingly before loading the invoice details.
+     */
     getObjectTypeAndLoadInvoiceDetails() {
         if (this.recordIds && this.recordIds.length > 0) {
             let recId = this.recordIds.split(',')[0].trim();
@@ -185,6 +229,12 @@ export default class BulkPaymentFeature extends LightningElement {
         }
     }
 
+    /**
+     * loadInvoiceDetails
+     * Loads invoice header records via the appropriate Apex method,
+     * maps additional display fields, validates currency consistency
+     * and preselects all returned records for payment.
+     */
     loadInvoiceDetails(recordIdArray) {
         const apexControllerMethod = this.getApexControllerMethodForGetDetails();
 
@@ -233,17 +283,33 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     handleRowSelection(event) {
+        /**
+         * handleRowSelection
+         * Updates `selectedRows` when the user changes selection in the
+         * datatable.
+         */
         this.selectedRows = event.detail.selectedRows.map(row => row.Id);
         // console.log('Selected Rows:', this.selectedRows);
     }
 
     handlePaymentFieldChange(event) {
+        /**
+         * handlePaymentFieldChange
+         * Generic handler for changes to the payment input fields. The
+         * target element must include a `data-field` attribute matching
+         * the component property to update.
+         */
         const field = event.target.dataset.field;
         this[field] = event.target.value;
 
         // console.log(`Payment field changed: ${field} = ${this[field]}`);
     }
 
+    /**
+     * totalAmount (getter)
+     * Computes the total outstanding amount for the currently selected
+     * invoices, formatted to two decimal places as a string.
+     */
     get totalAmount() {
         return this.invoiceRecords
             .filter(inv => this.selectedRows.includes(inv.Id))
@@ -251,6 +317,12 @@ export default class BulkPaymentFeature extends LightningElement {
             .toFixed(2);
     }
 
+    /**
+     * handlePay
+     * Validates payment inputs, builds the parameters required by the
+     * Apex bulk payment method and invokes processing. Shows success
+     * or error alerts to the user.
+     */
     async handlePay() {
         try {
             this.isLoading = true;
@@ -312,11 +384,20 @@ export default class BulkPaymentFeature extends LightningElement {
     }
 
     handleCancel() {
+        /**
+         * handleCancel
+         * Navigates the user back to the list view for the invoice object.
+         */
         // console.log('Cancel clicked - forcing navigation');
         url = `/lightning/o/${this.invoiceInfo.apiName}/list?filterName=Recent`
         window.location.replace(url);
     }
 
+    /**
+     * showAlert
+     * Helper that opens a LightningAlert modal with the provided title
+     * and message.
+     */
     async showAlert(title, message, theme = 'success') {
         await LightningAlert.open({
             message,
@@ -325,6 +406,11 @@ export default class BulkPaymentFeature extends LightningElement {
         });
     }
 
+    /**
+     * showAlertAndReturn
+     * Shows an alert and then navigates back to the invoice list after a
+     * short delay.
+     */
     async showAlertAndReturn(title, message, theme = 'success') {
         await LightningAlert.open({
             message,
